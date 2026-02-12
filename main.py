@@ -13,11 +13,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import settings
-from logger import get_logger
+from logger import logger
 from handlers import start, chat
 from tools.registry import register_all_tools
-
-logger = get_logger(__name__)
 
 
 def register_routers(dp: Dispatcher) -> None:
@@ -37,7 +35,7 @@ async def main() -> None:
 
     register_routers(dp)
 
-    logger.info("Бот запущено")
+    await logger.log(level="INFO", module=__name__, message="Бот запущено")
     await dp.start_polling(bot)
 
 

@@ -11,10 +11,8 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 
-from logger import get_logger
+from logger import logger
 from handlers.states import ChatState
-
-logger = get_logger(__name__)
 
 router = Router()
 
@@ -39,7 +37,11 @@ def get_chat_menu_keyboard() -> InlineKeyboardMarkup:
 async def cmd_start(message: Message, state: FSMContext) -> None:
     """Обробка /start — привітання, скидання стану і показ меню."""
     await state.clear()
-    logger.info("Користувач %s натиснув /start", message.from_user.id)
+    await logger.log(
+        level="INFO",
+        module=__name__,
+        message=f"Користувач {message.from_user.id} натиснув /start",
+    )
     await message.answer(
         "Вітаю! Обери режим нижче.",
         reply_markup=get_main_menu_keyboard(),

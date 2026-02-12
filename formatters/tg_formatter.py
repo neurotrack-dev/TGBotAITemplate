@@ -10,10 +10,6 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from logger import get_logger
-
-logger = get_logger(__name__)
-
 # MarkdownV2: повний набір спецсимволів (включно з . та ! — їх часто пропускають)
 # https://core.telegram.org/bots/api#markdownv2-style
 _MD2_ESCAPE = re.compile(r"([_*\[\]\(\)~`>#+\-=|{}.!\\])")

@@ -1,0 +1,16 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Локальні env/venv не копіюємо в образ
+.env
+venv/
+.venv/
+
+# IDE
+.DS_Store
+.cursor/

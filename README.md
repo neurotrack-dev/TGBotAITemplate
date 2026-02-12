@@ -12,6 +12,13 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Docker Compose
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
 ## Що де лежить
 
 - **handlers/** — тільки Telegram-логіка: команди, callback, повідомлення. Не містить AI чи форматування.

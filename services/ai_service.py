@@ -9,9 +9,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from config import settings
-from logger import get_logger
-
-logger = get_logger(__name__)
+from logger import logger
 
 # Системний промпт англійською — так простіше переносити між різними LLM API.
 SYSTEM_PROMPT = """You are an AI assistant inside a Telegram bot (internal architecture template).
@@ -36,14 +34,18 @@ def _build_messages(user_message: str) -> list[dict[str, str]]:
     ]
 
 
-def _call_llm(messages: list[dict[str, str]], tools: Optional[list[dict[str, Any]]]) -> str:
+async def _call_llm(messages: list[dict[str, str]], tools: Optional[list[dict[str, Any]]]) -> str:
     """
     Шар 2: виклик LLM.
 
     Якщо OPENAI_API_KEY є — виклик API. Інакше mock.
     """
     if not settings.OPENAI_API_KEY:
-        logger.debug("OPENAI_API_KEY is not set, using mock reply")
+        await logger.log(
+            level="DEBUG",
+            module=__name__,
+            message="OPENAI_API_KEY is not set, using mock reply",
+        )
     _ = tools
     # TODO: якщо settings.OPENAI_API_KEY — викликати openai.chat.completions.create(...)
     return (
@@ -53,7 +55,7 @@ def _call_llm(messages: list[dict[str, str]], tools: Optional[list[dict[str, Any
     )
 
 
-def generate_reply(user_message: str, tools: Optional[list[dict[str, Any]]] = None) -> str:
+async def generate_reply(user_message: str, tools: Optional[list[dict[str, Any]]] = None) -> str:
     """
     Генерує відповідь на повідомлення користувача.
 
@@ -64,6 +66,10 @@ def generate_reply(user_message: str, tools: Optional[list[dict[str, Any]]] = No
     Returns:
         Згенерована відповідь
     """
-    logger.debug("Генерація відповіді для: %s...", user_message[:50])
+    await logger.log(
+        level="DEBUG",
+        module=__name__,
+        message=f"Генерація відповіді для: {user_message[:50]}...",
+    )
     messages = _build_messages(user_message)
-    return _call_llm(messages, tools)
+    return await _call_llm(messages, tools)

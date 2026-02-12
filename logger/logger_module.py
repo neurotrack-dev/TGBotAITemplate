@@ -1,15 +1,6 @@
-"""
-Клас Logger — логування в консоль, файл і Telegram.
-"""
-
-from __future__ import annotations
-
 import asyncio
-import logging
 from datetime import datetime
 from logger.telegram import send_telegram_message
-
-_log = logging.getLogger("telegram_bot.remote_logger")
 
 
 class Logger:
@@ -29,12 +20,12 @@ class Logger:
         log_file="logs.txt",
     ):
         """
-        Ініціалізація логера.
-        Args:
-            default_level: Рівень логування за замовчуванням.
-            log_to_file: Чи записувати логи у файл.
-            log_to_telegram: Чи відправляти логи в Telegram.
-            log_file: Шлях до файлу логів.
+        Initialize the logger.
+
+        :param default_level: Default log level (INFO, WARNING, ERROR, etc.)
+        :param log_to_file: Whether to save logs to a file
+        :param log_to_telegram: Whether to send logs to Telegram
+        :param log_file: Name of the log file
         """
         self.default_level = default_level
         self.log_to_file = log_to_file
@@ -43,47 +34,41 @@ class Logger:
 
     async def log(self, level: str, message: str, module: str = "General"):
         """
-        Записати лог. Викликай з await.
-        Args:
-            level: Рівень (INFO, WARNING, ERROR, CRITICAL, DEBUG).
-            message: Текст повідомлення.
-            module: Назва модуля/компонента для контексту.
+        Log a message.
+
+        :param level: Log level (INFO, WARNING, ERROR, CRITICAL, DEBUG)
+        :param message: Log message
+        :param module: Module or component where the log originated
         """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        level = (level or self.default_level).upper()
         emoji = self.LEVEL_EMOJIS.get(level, "🔍")
         log_entry = f"{emoji} [{timestamp}] [{level}] [{module}] - {message}"
 
-        # Консоль/лог-система — через стандартний logging (без print)
-        if level == "DEBUG":
-            _log.debug(log_entry)
-        elif level == "WARNING":
-            _log.warning(log_entry)
-        elif level in ("ERROR", "CRITICAL"):
-            _log.error(log_entry)
-        else:
-            _log.info(log_entry)
+        # Print to console
+        print(log_entry)
 
-        # Файл — якщо ввімкнено (зручно для дебагу)
+        # Write to file if enabled
         if self.log_to_file:
             try:
                 with open(self.log_file, "a") as file:
                     file.write(log_entry + "\n")
             except IOError as e:
-                _log.exception("Помилка запису в файл логів: %s", e)
+                print(f"Failed to write log to file: {e}")
 
-        # Telegram — для важливих подій (звіти, помилки)
-        if self.log_to_telegram:
+        # Відправляємо в Telegram лише важливі рівні, щоб не спамити чат
+        # Чому так: INFO/DEBUG можуть бути частими (наприклад кожне повідомлення користувача)
+        if self.log_to_telegram and level in ("ERROR", "CRITICAL"):
             await self._send_to_telegram(log_entry)
 
     async def _send_to_telegram(self, message: str):
-        """Відправити лог у Telegram через Bot API."""
+        """
+        Send a log message to Telegram.
+
+        :param message: Log message
+        """
         await send_telegram_message(message)
 
 
-# ------------------------------------------------------------------------------
-# Тест: python -m logger.logger_module
-# ------------------------------------------------------------------------------
 if __name__ == "__main__":
     from logger import logger
 
