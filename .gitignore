@@ -2,4 +2,12 @@ venv/
 .venv/
 __pycache__/
 *.pyc
+*.pyo
 .env
+
+# Логи (logger пише в logs.txt)
+logs.txt
+*.log
+
+# macOS
+.DS_Store

@@ -44,6 +44,8 @@ async def handle_chat_message(message: Message) -> None:
     raw_reply = await generate_reply(user_text, tools=get_tools())
 
     # Форматування під Telegram (MarkdownV2)
+    # Не довіряємо “сирому” Markdown від LLM: у MarkdownV2 навіть '.' та '!' треба екранувати.
+    # Тому за замовчуванням екрануємо весь текст (allow_markdown=False) і уникаємо TelegramBadRequest.
     formatted_reply, parse_mode = format_for_telegram(raw_reply)
 
     try:

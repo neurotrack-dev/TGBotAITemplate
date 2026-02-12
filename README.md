@@ -23,6 +23,7 @@ docker compose up --build
 
 - **handlers/** — тільки Telegram-логіка: команди, callback, повідомлення. Не містить AI чи форматування.
 - **services/** — бізнес/AI: `generate_reply()`, виклики LLM. Без залежності від aiogram.
+- **prompts/** — системні промпти для LLM (англійською), щоб редагувати без правок коду.
 - **formatters/** — адаптація тексту під Telegram: MarkdownV2, escaping, fallback.
 - **tools/** — function calling: реєстр, контракт (name, schema, handler), приклади.
 - **config.py** — налаштування з .env (pydantic-settings).
@@ -42,6 +43,8 @@ docker compose up --build
 │   └── chat.py          # Повідомлення в chat mode
 ├── services/
 │   └── ai_service.py    # generate_reply(message, tools)
+├── prompts/
+│   └── system_prompt.txt # System prompt для LLM
 ├── formatters/
 │   └── tg_formatter.py  # MarkdownV2, escape_markdown_v2
 ├── tools/

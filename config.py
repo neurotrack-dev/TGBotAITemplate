@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str
     OPENAI_API_KEY: Optional[str] = None
+    OPENAI_MODEL: str = "gpt-4o-mini"
 
     # Для logger/telegram — обов'язково, якщо log_to_telegram=True
     TELEGRAM_BOT_FOR_REPORTS_KEY: Optional[str] = None
