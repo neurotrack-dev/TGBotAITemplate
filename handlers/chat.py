@@ -34,7 +34,7 @@ async def handle_chat_message(message: Message) -> None:
     await logger.log(
         level="INFO",
         module=__name__,
-        message=f"Повідомлення від {message.from_user.id}: {user_text[:50]}...",
+        message=f"Повідомлення від {message.from_user.id}: {user_text[:300]}...",
     )
 
     await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
@@ -44,6 +44,11 @@ async def handle_chat_message(message: Message) -> None:
 
     formatted_reply, parse_mode = format_for_telegram(raw_reply)
 
+    await logger.log(
+        level="INFO",
+        module=__name__,
+        message=f"Відповідь: {formatted_reply[:300]}...",
+    )
     try:
         await message.answer(formatted_reply, parse_mode=parse_mode)
     except TelegramBadRequest as e:

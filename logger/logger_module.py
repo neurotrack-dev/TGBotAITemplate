@@ -57,7 +57,7 @@ class Logger:
 
         # Відправляємо в Telegram лише важливі рівні, щоб не спамити чат
         # Чому так: INFO/DEBUG можуть бути частими (наприклад кожне повідомлення користувача)
-        if self.log_to_telegram and level in ("ERROR", "CRITICAL"):
+        if self.log_to_telegram:
             await self._send_to_telegram(log_entry)
 
     async def _send_to_telegram(self, message: str):

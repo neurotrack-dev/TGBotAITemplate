@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 
-from config import TELEGRAM_BOT_FOR_REPORTS_KEY, TELEGRAM_GROUP_ID_FOR_LOGGER
+from config import settings
 
 
 async def send_telegram_message(message: str):
@@ -10,8 +10,8 @@ async def send_telegram_message(message: str):
 
     :param message: The message text to send
     """
-    token = TELEGRAM_BOT_FOR_REPORTS_KEY
-    chat_id = TELEGRAM_GROUP_ID_FOR_LOGGER
+    token = settings.BOT_TOKEN
+    chat_id = settings.TELEGRAM_GROUP_ID_FOR_LOGGER
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {"chat_id": chat_id, "text": message}
 

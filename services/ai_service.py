@@ -16,6 +16,7 @@ from logger import logger
 from tools.registry import get_tool_handler
 from . import openai_client
 
+
 @lru_cache(maxsize=1)
 def _load_system_prompt() -> str:
     """
@@ -29,7 +30,9 @@ def _load_system_prompt() -> str:
         return prompt_path.read_text(encoding="utf-8").strip()
     except FileNotFoundError:
         # Безпечний fallback, щоб бот не падав якщо файл випадково видалили
-        return "You are a helpful AI assistant in a Telegram bot. Be concise and honest."
+        return (
+            "You are a helpful AI assistant in a Telegram bot. Be concise and honest."
+        )
 
 
 def _build_messages(user_message: str) -> list[dict[str, str]]:
@@ -40,14 +43,20 @@ def _build_messages(user_message: str) -> list[dict[str, str]]:
     ]
 
 
-async def _call_llm(messages: list[dict[str, str]], tools: Optional[list[dict[str, Any]]]) -> str:
+async def _call_llm(
+    messages: list[dict[str, str]], tools: Optional[list[dict[str, Any]]]
+) -> str:
     """
     Шар 2: виклик LLM.
 
     Якщо OPENAI_API_KEY є — виклик API. Інакше mock.
     """
     if not settings.OPENAI_API_KEY:
-        await logger.log(level="DEBUG", module=__name__, message="Using mock reply (no OPENAI_API_KEY)")
+        await logger.log(
+            level="DEBUG",
+            module=__name__,
+            message="Using mock reply (no OPENAI_API_KEY)",
+        )
         return (
             "(mock)\n"
             f"You said: {messages[-1]['content'][:200]}\n\n"
@@ -130,7 +139,9 @@ async def _call_llm(messages: list[dict[str, str]], tools: Optional[list[dict[st
     return (msg.content or "").strip()
 
 
-async def generate_reply(user_message: str, tools: Optional[list[dict[str, Any]]] = None) -> str:
+async def generate_reply(
+    user_message: str, tools: Optional[list[dict[str, Any]]] = None
+) -> str:
     """
     Генерує відповідь на повідомлення користувача.
 
@@ -141,10 +152,5 @@ async def generate_reply(user_message: str, tools: Optional[list[dict[str, Any]]
     Returns:
         Згенерована відповідь
     """
-    await logger.log(
-        level="DEBUG",
-        module=__name__,
-        message=f"Генерація відповіді для: {user_message[:50]}...",
-    )
     messages = _build_messages(user_message)
     return await _call_llm(messages, tools)

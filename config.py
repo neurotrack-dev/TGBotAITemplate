@@ -27,7 +27,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-# Експорт для logger.telegram (from config import ...)
-TELEGRAM_BOT_FOR_REPORTS_KEY = settings.TELEGRAM_BOT_FOR_REPORTS_KEY
-TELEGRAM_GROUP_ID_FOR_LOGGER = settings.TELEGRAM_GROUP_ID_FOR_LOGGER
