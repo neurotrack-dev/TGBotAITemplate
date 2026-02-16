@@ -10,7 +10,6 @@ from __future__ import annotations
 import asyncio
 
 from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import settings
 from logger import logger
@@ -26,9 +25,7 @@ def register_routers(dp: Dispatcher) -> None:
 
 async def main() -> None:
     bot = Bot(token=settings.BOT_TOKEN)
-    # FSM потребує storage — MemoryStorage для in-memory (під Redis пізніше)
-    storage = MemoryStorage()
-    dp = Dispatcher(storage=storage)
+    dp = Dispatcher()
 
     # Явна реєстрація tools — без “магії” імпортів
     register_all_tools()

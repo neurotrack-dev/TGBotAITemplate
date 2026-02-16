@@ -14,6 +14,7 @@ from typing import Any, Optional
 from config import settings
 from logger import logger
 from tools.registry import get_tool_handler
+from . import openai_client
 
 @lru_cache(maxsize=1)
 def _load_system_prompt() -> str:
@@ -53,14 +54,15 @@ async def _call_llm(messages: list[dict[str, str]], tools: Optional[list[dict[st
             "To enable real AI replies, set OPENAI_API_KEY and implement the OpenAI call."
         )
 
-    # Реальний виклик OpenAI (async). Якщо бібліотека не встановлена — повертаємо mock з поясненням.
-    try:
-        from openai import AsyncOpenAI  # type: ignore
-    except Exception as e:  # pragma: no cover
-        await logger.log(level="ERROR", module=__name__, message=f"OpenAI SDK import failed: {e}")
+    client = openai_client.get_client(settings.OPENAI_API_KEY)
+    if client is None:
+        await logger.log(
+            level="ERROR",
+            module=__name__,
+            message=f"OpenAI SDK import failed: {openai_client.get_import_error()}",
+        )
         return "(error) OpenAI SDK is not installed. Install `openai` package."
 
-    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
     tool_defs = tools if tools else None
 
     response = await client.chat.completions.create(

@@ -24,7 +24,7 @@ docker compose up --build
 - **handlers/** — тільки Telegram-логіка: команди, callback, повідомлення. Не містить AI чи форматування.
 - **services/** — бізнес/AI: `generate_reply()`, виклики LLM. Без залежності від aiogram.
 - **prompts/** — системні промпти для LLM (англійською), щоб редагувати без правок коду.
-- **formatters/** — адаптація тексту під Telegram: MarkdownV2, escaping, fallback.
+- **formatters/** — адаптація тексту під Telegram: HTML, escaping, fallback.
 - **tools/** — function calling: реєстр, контракт (name, schema, handler), приклади.
 - **config.py** — налаштування з .env (pydantic-settings).
 - **logger/** — логування (консоль + опціонально відправка в Telegram)
@@ -38,15 +38,14 @@ docker compose up --build
 │   ├── logger_module.py # Logger (файл, Telegram)
 │   └── telegram.py      # Відправка логів у чат
 ├── handlers/
-│   ├── states.py        # FSM (ChatState.active)
-│   ├── start.py         # /start, меню
-│   └── chat.py          # Повідомлення в chat mode
+│   ├── start.py         # /start — привітання
+│   └── chat.py          # Текстові повідомлення → AI
 ├── services/
 │   └── ai_service.py    # generate_reply(message, tools)
 ├── prompts/
 │   └── system_prompt.txt # System prompt для LLM
 ├── formatters/
-│   └── tg_formatter.py  # MarkdownV2, escape_markdown_v2
+│   └── tg_formatter.py  # HTML, escape, markdown→теги
 ├── tools/
 │   ├── base.py          # Tool(name, description, schema, handler)
 │   ├── registry.py      # Реєстр tools
@@ -57,11 +56,10 @@ docker compose up --build
 
 ## Flow
 
-1. `/start` → привітання і меню
-2. Кнопка "Chat mode" → FSM state ChatState.active
-3. Користувач пише повідомлення (тільки в цьому стані бот відповідає)
-4. Бот генерує відповідь через `generate_reply(message, tools)`
-5. Відповідь форматується (MarkdownV2) і відправляється; при TelegramBadRequest — plain text
+1. `/start` → привітання (без клавіатури)
+2. Будь-яке текстове повідомлення (крім команд `/...`) → бот відповідає через AI
+3. Бот генерує відповідь через `generate_reply(message, tools)`
+4. Відповідь форматується (HTML) і відправляється; при TelegramBadRequest — plain text
 
 ## Встановлення
 

@@ -1,48 +1,74 @@
 """
-Форматування тексту для Telegram.
+Форматування тексту для Telegram. Тільки HTML.
 
-Обрано MarkdownV2 — суворіший, але єдиний варіант з чітким escaping.
-Чому не HTML: MarkdownV2 типовий для AI (моделі повертають * _ `).
+Код (block і inline) спочатку виноситься в плейсхолдери, потім escape + bold/italic,
+потім код повертається. Жодного перетину тегів, жодних глобальних "очисток".
 """
 
 from __future__ import annotations
 
+import html
 import re
-from typing import Optional
+from typing import Tuple
 
-# MarkdownV2: повний набір спецсимволів (включно з . та ! — їх часто пропускають)
-# https://core.telegram.org/bots/api#markdownv2-style
-_MD2_ESCAPE = re.compile(r"([_*\[\]\(\)~`>#+\-=|{}.!\\])")
+_CODE_BLOCK_RE = re.compile(r"```(?:\w+)?\n?([\s\S]*?)```", re.MULTILINE)
+_INLINE_CODE_RE = re.compile(r"`([^`]+)`")
+_BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+_BOLD_UNDER_RE = re.compile(r"__(.+?)__")
+_ITALIC_RE = re.compile(r"\*([^*]+)\*")
+_ITALIC_UNDER_RE = re.compile(r"(?<![_])_([^_]+)_(?![_])")
 
 
-def escape_markdown_v2(text: str) -> str:
+def _placeholder(prefix: str, i: int) -> str:
+    """Токен, який не змінює html.escape і не збігається з ** / * / _."""
+    return f"\x00{prefix}{i}\x00"
+
+
+def format_for_telegram(text: str) -> Tuple[str, str]:
     """
-    Екранує спецсимволи Telegram MarkdownV2.
+    Готує текст для відправки в Telegram. Один parse_mode — HTML.
 
-    Чому потрібно: інакше _ * ` тощо Telegram сприймає як розмітку.
-    Некоректна розмітка → TelegramBadRequest при send_message.
-    """
-    return _MD2_ESCAPE.sub(r"\\\1", text)
-
-
-def format_for_telegram(text: str, *, allow_markdown: bool = False) -> tuple[str, Optional[str]]:
-    """
-    Готує текст для відправки в Telegram.
-
-    Повертає (text, parse_mode). parse_mode="MarkdownV2" — пробуємо.
-    Fallback при помилці — у handler при TelegramBadRequest (відправка без parse_mode).
-    Args:
-        text: сирий текст від AI
-        allow_markdown: якщо True — довіряємо що текст уже валідний MarkdownV2;
-            якщо False — екрануємо весь текст, щоб Telegram не відхилив розмітку.
-    Returns:
-        (відформатований текст, "MarkdownV2" або None для plain)
+    Порядок: витягнути block code → inline code → escape → bold/italic → повернути код.
+    Курсив і жирний не застосовуються всередині коду. Перетину тегів немає.
     """
     if not text or not text.strip():
-        return "", None
+        return "", "HTML"
 
-    clean = text.strip()
-    if not allow_markdown:
-        clean = escape_markdown_v2(clean)
+    raw = text.strip()
 
-    return clean, "MarkdownV2"
+    # 1. Винести блоки коду в плейсхолдери
+    blocks: list[str] = []
+
+    def block_repl(m: re.Match) -> str:
+        blocks.append(m.group(1))
+        return _placeholder("B", len(blocks) - 1)
+
+    s = _CODE_BLOCK_RE.sub(block_repl, raw)
+
+    # 2. Винести inline-код в плейсхолдери
+    inlines: list[str] = []
+
+    def inline_repl(m: re.Match) -> str:
+        inlines.append(m.group(1))
+        return _placeholder("I", len(inlines) - 1)
+
+    s = _INLINE_CODE_RE.sub(inline_repl, s)
+
+    # 3. Екранувати звичайний текст (плейсхолдери залишаються)
+    s = html.escape(s)
+
+    # 4. Жирний і курсив тільки в не-коді
+    s = _BOLD_RE.sub(r"<b>\1</b>", s)
+    s = _BOLD_UNDER_RE.sub(r"<b>\1</b>", s)
+    s = _ITALIC_RE.sub(r"<i>\1</i>", s)
+    s = _ITALIC_UNDER_RE.sub(r"<i>\1</i>", s)
+
+    # 5. Повернути блоки коду (вміст екрануємо при вставці)
+    for i, content in enumerate(blocks):
+        s = s.replace(_placeholder("B", i), f"<pre><code>{html.escape(content)}</code></pre>")
+
+    # 6. Повернути inline-код
+    for i, content in enumerate(inlines):
+        s = s.replace(_placeholder("I", i), f"<code>{html.escape(content)}</code>")
+
+    return s.strip(), "HTML"
