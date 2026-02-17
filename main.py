@@ -12,6 +12,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 
 from config import settings
+from db import init_db
 from logger import logger
 from handlers import start, chat
 from tools.registry import register_all_tools
@@ -29,6 +30,7 @@ async def main() -> None:
 
     # Явна реєстрація tools — без “магії” імпортів
     register_all_tools()
+    await init_db()
 
     register_routers(dp)
 

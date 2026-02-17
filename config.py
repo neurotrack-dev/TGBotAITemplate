@@ -25,5 +25,8 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_FOR_REPORTS_KEY: Optional[str] = None
     TELEGRAM_GROUP_ID_FOR_LOGGER: Optional[str] = None
 
+    # PostgreSQL
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/telegram_bot"
+
 
 settings = Settings()

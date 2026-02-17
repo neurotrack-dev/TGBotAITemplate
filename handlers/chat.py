@@ -12,10 +12,10 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
 
+from db import UnitOfWork
 from logger import logger
-from services.ai_service import generate_reply
+from services.chat_service import ChatService
 from formatters.tg_formatter import format_for_telegram
-from tools.registry import get_tools
 from tools.text_chunking import chunk_text
 
 router = Router()
@@ -51,8 +51,13 @@ async def handle_chat_message(message: Message) -> None:
 
     await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
 
-    # Генерація відповіді (tools передаємо для майбутнього OpenAI)
-    raw_reply = await generate_reply(user_text, tools=get_tools())
+    async with UnitOfWork() as uow:
+        chat_service = ChatService(uow.session)
+        raw_reply = await chat_service.process_message(
+            telegram_id=message.from_user.id,
+            username=message.from_user.username,
+            user_text=user_text,
+        )
 
     formatted_reply, parse_mode = format_for_telegram(raw_reply)
 

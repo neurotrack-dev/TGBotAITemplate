@@ -25,6 +25,7 @@ docker compose up --build
 - **services/** — бізнес/AI: `generate_reply()`, виклики LLM. Без залежності від aiogram.
 - **prompts/** — системні промпти для LLM (англійською), щоб редагувати без правок коду.
 - **formatters/** — адаптація тексту під Telegram: HTML, escaping, fallback.
+- **db/** — PostgreSQL + SQLAlchemy async: User, Conversation, Message, сесії.
 - **tools/** — function calling: реєстр, контракт (name, schema, handler), приклади.
 - **config.py** — налаштування з .env (pydantic-settings).
 - **logger/** — логування (консоль + опціонально відправка в Telegram)
@@ -41,11 +42,15 @@ docker compose up --build
 │   ├── start.py         # /start — привітання
 │   └── chat.py          # Текстові повідомлення → AI
 ├── services/
-│   └── ai_service.py    # generate_reply(message, tools)
+│   ├── ai_service.py    # generate_reply(messages, tools)
+│   └── chat_service.py  # ChatService: user/conversation, історія, AI
 ├── prompts/
 │   └── system_prompt.txt # System prompt для LLM
 ├── formatters/
 │   └── tg_formatter.py  # HTML, escape, markdown→теги
+├── db/
+│   ├── models.py        # User, Conversation, Message
+│   └── session.py       # get_async_session, init_db
 ├── tools/
 │   ├── base.py          # Tool(name, description, schema, handler)
 │   ├── registry.py      # Реєстр tools
@@ -57,8 +62,8 @@ docker compose up --build
 ## Flow
 
 1. `/start` → привітання (без клавіатури)
-2. Будь-яке текстове повідомлення (крім команд `/...`) → бот відповідає через AI
-3. Бот генерує відповідь через `generate_reply(message, tools)`
+2. Будь-яке текстове повідомлення (крім команд `/...`) → ChatService (user, conversation, історія)
+3. AI генерує відповідь через `generate_reply(messages, tools)` (історія з БД)
 4. Відповідь форматується (HTML) і відправляється; при TelegramBadRequest — plain text
 
 ## Встановлення
@@ -95,6 +100,7 @@ python main.py
 | `OPENAI_API_KEY` | Ні        | Для OpenAI (поки mock)        |
 | `TELEGRAM_BOT_FOR_REPORTS_KEY` | Ні | Для logger — відправка логів у Telegram |
 | `TELEGRAM_GROUP_ID_FOR_LOGGER` | Ні | ID чату для логів              |
+| `DATABASE_URL` | Ні | PostgreSQL (postgresql+asyncpg://...) |
 
 ## Розширення
 

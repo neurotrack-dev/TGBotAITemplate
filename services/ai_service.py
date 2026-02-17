@@ -35,12 +35,11 @@ def _load_system_prompt() -> str:
         )
 
 
-def _build_messages(user_message: str) -> list[dict[str, str]]:
-    """Збирає список повідомлень для API. Шар 1: збір промпту."""
-    return [
-        {"role": "system", "content": _load_system_prompt()},
-        {"role": "user", "content": user_message},
-    ]
+def _ensure_system_message(messages: list[dict]) -> list[dict]:
+    """Якщо немає system — додає на початок."""
+    if messages and messages[0].get("role") == "system":
+        return messages
+    return [{"role": "system", "content": _load_system_prompt()}] + list(messages)
 
 
 async def _call_llm(
@@ -57,9 +56,11 @@ async def _call_llm(
             module=__name__,
             message="Using mock reply (no OPENAI_API_KEY)",
         )
+        last_user = next((m for m in reversed(messages) if m.get("role") == "user"), messages[-1])
+        content = last_user.get("content", "")[:200] if isinstance(last_user.get("content"), str) else ""
         return (
             "(mock)\n"
-            f"You said: {messages[-1]['content'][:200]}\n\n"
+            f"You said: {content}\n\n"
             "To enable real AI replies, set OPENAI_API_KEY and implement the OpenAI call."
         )
 
@@ -140,17 +141,18 @@ async def _call_llm(
 
 
 async def generate_reply(
-    user_message: str, tools: Optional[list[dict[str, Any]]] = None
+    messages: list[dict],
+    tools: Optional[list[dict[str, Any]]] = None,
 ) -> str:
     """
-    Генерує відповідь на повідомлення користувача.
+    Генерує відповідь по історії повідомлень.
 
     Args:
-        user_message: текст від користувача
+        messages: список {"role": "user"|"assistant"|"system", "content": "..."}
         tools: список tools для function calling (опціонально)
 
     Returns:
         Згенерована відповідь
     """
-    messages = _build_messages(user_message)
+    messages = _ensure_system_message(messages)
     return await _call_llm(messages, tools)
