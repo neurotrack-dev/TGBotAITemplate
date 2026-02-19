@@ -25,8 +25,10 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_FOR_REPORTS_KEY: Optional[str] = None
     TELEGRAM_GROUP_ID_FOR_LOGGER: Optional[str] = None
 
-    # PostgreSQL
+    # PostgreSQL. Default підходить для Docker (user postgres). На macOS часто треба в .env свій user.
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/telegram_bot"
+    # True = при старті викликати create_all() (схема з моделей). False = тільки перевірка підключення; схема — лише через Alembic.
+    DB_CREATE_SCHEMA_ON_START: bool = False
 
 
 settings = Settings()

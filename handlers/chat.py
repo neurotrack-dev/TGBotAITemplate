@@ -40,6 +40,7 @@ async def handle_chat_message(message: Message) -> None:
     Чому саме тут: fallback працює лише коли ловимо помилку Telegram API, не в formatter.
     """
     user_text = message.text or ""
+    # Команди (/start, /help тощо) не передаємо в AI — ігноруємо
     if not user_text.strip() or user_text.strip().startswith("/"):
         return
 
@@ -51,6 +52,7 @@ async def handle_chat_message(message: Message) -> None:
 
     await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
 
+    # Одна транзакція: user msg + assistant msg; при помилці AI — rollback, нічого не зберігається
     async with UnitOfWork() as uow:
         chat_service = ChatService(uow.session)
         raw_reply = await chat_service.process_message(

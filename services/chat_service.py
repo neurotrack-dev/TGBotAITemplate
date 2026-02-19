@@ -16,8 +16,11 @@ from logger import logger
 from services.ai_service import generate_reply
 from tools.registry import get_tools
 
+# Скільки останніх повідомлень передавати в AI як контекст
 LAST_N_MESSAGES = 12
+# Після цієї кількості — закрити conversation, створити нову, оновити user.active_conversation_id
 MAX_MESSAGES_PER_CONVERSATION = 200
+# Текст користувачу при помилці AI (лог з stacktrace окремо)
 AI_ERROR_FALLBACK = "Сталася помилка, спробуй ще раз."
 
 

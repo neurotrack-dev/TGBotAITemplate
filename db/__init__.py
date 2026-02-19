@@ -1,5 +1,6 @@
 """
-Database — моделі, сесії, ініціалізація.
+Database — моделі (User, Conversation, Message), UnitOfWork, сесії, init_db.
+Імпортуй UnitOfWork та init_db звідси; моделі — для типів або прямого доступу.
 """
 
 from db.models import Base, Conversation, Message, User

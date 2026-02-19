@@ -8,6 +8,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -58,7 +59,10 @@ class UnitOfWork:
 
 @asynccontextmanager
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    """Низькорівневий контекст сесії без авто-commit. Для UoW використовуй UnitOfWork()."""
+    """
+    Низькорівневий контекст сесії без авто-commit.
+    У handlers використовуй UnitOfWork(); тут — для тестів або ручної роботи з сесією.
+    """
     async with async_session_factory() as session:
         try:
             yield session
@@ -70,6 +74,12 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Створює таблиці в БД. Викликати при старті бота."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """
+    Перевірка підключення до БД при старті. Якщо DB_CREATE_SCHEMA_ON_START=True — додатково create_all().
+    За замовчуванням схему не створюємо: лише Alembic (alembic upgrade head). Так уникнемо розходжень з міграціями.
+    """
+    async with engine.connect() as conn:
+        await conn.execute(text("SELECT 1"))
+    if settings.DB_CREATE_SCHEMA_ON_START:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)

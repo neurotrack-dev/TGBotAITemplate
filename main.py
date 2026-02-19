@@ -30,6 +30,7 @@ async def main() -> None:
 
     # Явна реєстрація tools — без “магії” імпортів
     register_all_tools()
+    # Перевірка підключення до БД; при DB_CREATE_SCHEMA_ON_START=True — create_all(). Інакше схема лише з Alembic.
     await init_db()
 
     register_routers(dp)

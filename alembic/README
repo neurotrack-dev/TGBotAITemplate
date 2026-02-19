@@ -1,0 +1,9 @@
+Alembic — міграції для PostgreSQL.
+
+Команди:
+  alembic revision --autogenerate -m "опис"  # нова міграція з автогенерацією
+  alembic upgrade head                       # застосувати всі міграції
+  alembic downgrade -1                       # відкотити останню
+  alembic current                           # поточна ревізія
+
+URL береться з config.py (DATABASE_URL). Для міграцій використовується sync-драйвер psycopg2.

@@ -50,7 +50,10 @@ docker compose up --build
 │   └── tg_formatter.py  # HTML, escape, markdown→теги
 ├── db/
 │   ├── models.py        # User, Conversation, Message
-│   └── session.py       # get_async_session, init_db
+│   └── session.py       # UnitOfWork, get_async_session, init_db
+├── alembic/             # Міграції БД (Alembic)
+│   ├── env.py           # URL з config, метадані з db.models
+│   └── versions/        # Файли міграцій
 ├── tools/
 │   ├── base.py          # Tool(name, description, schema, handler)
 │   ├── registry.py      # Реєстр tools
@@ -89,8 +92,13 @@ pip install -r requirements.txt
 cp .env.example .env
 # Відредагуйте .env
 
+# Перший запуск: застосувати міграції (Postgres має бути запущений)
+python -m alembic upgrade head
+
 python main.py
 ```
+
+**Docker Compose:** міграції застосовуються автоматично при старті контейнера (entrypoint.sh).
 
 ## Змінні оточення
 
@@ -101,6 +109,7 @@ python main.py
 | `TELEGRAM_BOT_FOR_REPORTS_KEY` | Ні | Для logger — відправка логів у Telegram |
 | `TELEGRAM_GROUP_ID_FOR_LOGGER` | Ні | ID чату для логів              |
 | `DATABASE_URL` | Ні | PostgreSQL (postgresql+asyncpg://...) |
+| `DB_CREATE_SCHEMA_ON_START` | Ні | True = create_all() при старті (резерв без Alembic). False = лише перевірка підключення, схема тільки з міграцій |
 
 ## Розширення
 

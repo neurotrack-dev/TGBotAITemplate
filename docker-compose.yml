@@ -1,3 +1,4 @@
+# Бот + Postgres. Бот стартує після healthcheck Postgres; entrypoint спочатку робить alembic upgrade head.
 services:
   postgres:
     image: postgres:16-alpine
@@ -20,6 +21,7 @@ services:
     container_name: telegram-ai-bot-template
     env_file:
       - .env
+    # Хост postgres — ім'я сервісу в compose; credentials як у postgres.environment
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/telegram_bot
     depends_on:

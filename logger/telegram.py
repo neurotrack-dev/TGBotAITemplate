@@ -1,3 +1,7 @@
+"""
+Відправка логів у Telegram-групу. HTML escape, chunking по 3800 символів.
+Викликається з logger_module при level ERROR/CRITICAL (якщо log_to_telegram=True).
+"""
 import html
 import aiohttp
 import asyncio
@@ -6,11 +10,8 @@ from config import settings
 from tools.text_chunking import chunk_text
 
 
-async def send_telegram_message(message: str):
-    """
-    Send a message to Telegram using Bot API asynchronously.
-    Long messages are split into chunks (3800 chars) to respect Telegram limit.
-    """
+async def send_telegram_message(message: str) -> None:
+    """Відправити текст у групу (chat_id з config). Довгі повідомлення — кількома частинами."""
     escaped = html.escape(message, quote=False)
 
     token = settings.BOT_TOKEN

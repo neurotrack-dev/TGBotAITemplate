@@ -10,8 +10,7 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Потім код
+# Код (включно з entrypoint.sh). Entrypoint: alembic upgrade head → python main.py
 COPY . /app
-
-# Чому так: в compose передаємо .env і запускаємо main.py
-CMD ["python", "main.py"]
+RUN chmod +x /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
